@@ -1,0 +1,19 @@
+name: probe
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: curl with browser headers
+        run: |
+          for u in https://api.frogbet.com/api/v1/wager-race/leaderboard https://duckdice.io/api/contest/type/wagering https://tower.bet/api/monthly-event/current; do
+            code=$(curl -s -o /tmp/b -w '%{http_code}' --compressed -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36' -H 'accept: application/json, text/plain, */*' -H 'accept-language: en-US,en;q=0.9' -H 'sec-fetch-site: same-site' -H 'sec-fetch-mode: cors' -H 'sec-fetch-dest: empty' -H 'sec-ch-ua: "Chromium";v="130", "Google Chrome";v="130"' -H 'sec-ch-ua-platform: "Windows"' "$u")
+            echo "CURL $u -> $code $(head -c 100 /tmp/b | tr -d '\n')"
+          done
+          curl -s https://ipinfo.io/json | tr -d '\n'; echo
+      - run: npm i --no-save playwright@1.48 && npx playwright install --with-deps chromium >/dev/null
+      - run: node probe.mjs
