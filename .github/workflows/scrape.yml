@@ -11,22 +11,32 @@ concurrency:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Previous feed
-        run: curl -fsS "https://raw.githubusercontent.com/${{ github.repository }}/data/races.json?t=$(date +%s)" -o prev.json || echo '{}' > prev.json
-      - name: Scrape
-        run: node --experimental-strip-types --no-warnings scrape.mjs prev.json
-      - name: Publish to data branch
+      - name: Previous feed + state (data branch)
         run: |
-          cd out
+          mkdir -p data
+          git fetch -q --depth=1 origin data && git --work-tree=data checkout FETCH_HEAD -- . || true
+          git reset -q
+          ls -la data
+      - name: Browser for DuckDice fallback
+        run: npm i --no-save --no-audit --no-fund playwright@1.48 >/dev/null && npx playwright install --with-deps chromium >/dev/null
+      - name: Scrape
+        env:
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+          SCRAPEDO_TOKEN: ${{ secrets.SCRAPEDO_TOKEN }}
+        run: node --experimental-strip-types --no-warnings scrape.mjs data
+      - name: Publish to data branch (only if changed)
+        run: |
+          cd data
           git init -q -b data
           git config user.name "race-feed-bot"
           git config user.email "race-feed-bot@users.noreply.github.com"
-          git add races.json
+          git add races.json state.json
+          if git fetch -q --depth=1 "https://github.com/${{ github.repository }}.git" data 2>/dev/null && git diff --quiet FETCH_HEAD --cached -- races.json state.json; then echo "no change"; exit 0; fi
           git commit -qm "feed $(date -u +%FT%TZ)"
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" data
