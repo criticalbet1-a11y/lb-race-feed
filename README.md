@@ -1,7 +1,7 @@
 # lb-race-feed
 
 Public, read-only snapshot of public weekly/monthly casino race leaderboards
-(FrogBet, Jack, DuckDice, Tower), refreshed by GitHub Actions (cron every 10 min).
+(FrogBet, Jack, DuckDice, Tower), refreshed by GitHub Actions (one looping run scrapes every 10 min and re-dispatches itself every ~6 h; hourly cron = watchdog).
 
 Output on the `data` branch: `races.json` (player names masked, text only, no links)
 and `state.json` (budget counters + cached Tower contest hash). No secrets.
