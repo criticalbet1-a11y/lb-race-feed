@@ -28,6 +28,7 @@ jobs:
       - name: Scrape
         env:
           FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+          FIRECRAWL_API_KEY_2: ${{ secrets.FIRECRAWL_API_KEY_2 }}
           SCRAPEDO_TOKEN: ${{ secrets.SCRAPEDO_TOKEN }}
         run: node --experimental-strip-types --no-warnings scrape.mjs data
       - name: Publish to data branch (only if changed)

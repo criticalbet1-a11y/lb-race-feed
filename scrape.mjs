@@ -11,8 +11,10 @@ import { ADAPTERS } from "./src/races.ts";
 
 const DIR = process.argv[2] || "out";
 const FC_KEY = process.env.FIRECRAWL_API_KEY || "";
+const FC_KEY2 = process.env.FIRECRAWL_API_KEY_2 || ""; // standby only: used when key 1 is out of credits / rejected
 const SD_TOKEN = process.env.SCRAPEDO_TOKEN || "";
-const SECRETS = [FC_KEY, SD_TOKEN, encodeURIComponent(SD_TOKEN)].filter((s) => s.length > 6);
+const FC_KEYS = { firecrawl: FC_KEY, firecrawl2: FC_KEY2 };
+const SECRETS = [FC_KEY, FC_KEY2, SD_TOKEN, encodeURIComponent(SD_TOKEN)].filter((s) => s.length > 6);
 const scrub = (s) => SECRETS.reduce((a, k) => a.split(k).join("***"), String(s)).slice(0, 160);
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
 const MIN = 60_000;
@@ -43,9 +45,9 @@ function bucket(p, now) {
 function allowance(p, now) {
   const b = bucket(p, now);
   if (p === "microlink") return MICROLINK_DAY_CAP - b.used_day;
-  if (p === "firecrawl" && !FC_KEY) return 0;
+  if (p.startsWith("firecrawl") && (!FC_KEYS[p] || fcDown(p, now))) return 0;
+  if (p === "firecrawl2" && !fcDown("firecrawl", now)) return 0; // standby: only when key 1 is unusable
   if (p === "scrapedo" && !SD_TOKEN) return 0;
-  if (p === "firecrawl" && typeof b.remaining === "number" && b.remaining - (b.used_since_check || 0) < 30) return 0;
   const d = new Date(now);
   const dim = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
   const daysLeft = dim - d.getUTCDate() + 1;
@@ -54,23 +56,30 @@ function allowance(p, now) {
   const paced = Math.min(daily, Math.ceil(daily * frac) + 3);
   return Math.min(paced - b.used_day, MONTH_CAP - b.used_month);
 }
+/** A Firecrawl key is "down" after a credit/auth error (for 12 h) or when its reported remaining credits < 30. */
+function fcDown(p, now) {
+  const b = state.budget[p] || {};
+  if (b.down_until && now < Date.parse(b.down_until)) return true;
+  return typeof b.remaining === "number" && b.remaining - (b.used_since_check || 0) < 30;
+}
 function spend(p, now) {
   const b = bucket(p, now);
   b.used_day++; b.used_month++;
-  if (p === "firecrawl") b.used_since_check = (b.used_since_check || 0) + 1;
+  if (p.startsWith("firecrawl")) b.used_since_check = (b.used_since_check || 0) + 1;
 }
 
-async function firecrawlCreditCheck(now) {
-  if (!FC_KEY) return;
-  const b = bucket("firecrawl", now);
+async function firecrawlCreditCheck(p, now) {
+  if (!FC_KEYS[p]) return;
+  const b = bucket(p, now);
   if (b.checked_at && now - Date.parse(b.checked_at) < 86400_000) return;
   try {
-    const r = await fetch("https://api.firecrawl.dev/v2/team/credit-usage", { headers: { authorization: `Bearer ${FC_KEY}` }, signal: AbortSignal.timeout(15000) });
+    const r = await fetch("https://api.firecrawl.dev/v2/team/credit-usage", { headers: { authorization: `Bearer ${FC_KEYS[p]}` }, signal: AbortSignal.timeout(15000) });
     const j = await r.json();
     const rem = Number(j?.data?.remainingCredits ?? j?.data?.remaining_credits);
     if (r.ok && Number.isFinite(rem)) Object.assign(b, { remaining: rem, used_since_check: 0, checked_at: new Date(now).toISOString() });
-    console.log(`firecrawl credits remaining: ${Number.isFinite(rem) ? rem : "unknown"} (HTTP ${r.status})`);
-  } catch (e) { console.log(`firecrawl credit check failed: ${scrub(e.message)}`); }
+    if (r.status === 401 || r.status === 402 || r.status === 403) b.down_until = new Date(now + 12 * 3600_000).toISOString();
+    console.log(`${p} credits remaining: ${Number.isFinite(rem) ? rem : "unknown"} (HTTP ${r.status})`);
+  } catch (e) { console.log(`${p} credit check failed: ${scrub(e.message)}`); }
 }
 
 /* ---------------- fetch strategies ---------------- */
@@ -100,17 +109,21 @@ async function direct(url, referer, tries = 2) {
   }
 }
 
-async function viaFirecrawl(url, now) {
-  if (allowance("firecrawl", now) <= 0) throw new Error("firecrawl budget exhausted");
-  spend("firecrawl", now);
+async function viaFirecrawl(url, now, p = "firecrawl") {
+  if (allowance(p, now) <= 0) throw new Error(`${p} budget exhausted`);
+  spend(p, now);
   const r = await fetch("https://api.firecrawl.dev/v2/scrape", {
     method: "POST",
     signal: AbortSignal.timeout(60000),
-    headers: { authorization: `Bearer ${FC_KEY}`, "content-type": "application/json" },
+    headers: { authorization: `Bearer ${FC_KEYS[p]}`, "content-type": "application/json" },
     body: JSON.stringify({ url, formats: ["rawHtml"], location: { country: "DE" }, maxAge: 0, storeInCache: false, onlyMainContent: false, timeout: 45000 }),
   });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok || !j.success) throw new Error(`firecrawl HTTP ${r.status}${j.error ? ` ${scrub(j.error).slice(0, 80)}` : ""}`);
+  if ([401, 402, 403, 429].includes(r.status) && /credit|auth|unauthori|invalid|payment|limit/i.test(JSON.stringify(j))) {
+    // Out of credits / key rejected: park this key for 12 h (key 2 takes over if it is key 1).
+    bucket(p, now).down_until = new Date(now + 12 * 3600_000).toISOString();
+  }
+  if (!r.ok || !j.success) throw new Error(`${p} HTTP ${r.status}${j.error ? ` ${scrub(j.error).slice(0, 80)}` : ""}`);
   const st = j.data?.metadata?.statusCode;
   if (st && st !== 200) throw new Error(`firecrawl target HTTP ${st}`);
   return parseBody(j.data?.rawHtml ?? j.data?.markdown);
@@ -128,10 +141,11 @@ async function viaScrapedo(url, now) {
 /** Paid proxy: whichever provider has more allowance left; the other one as fallback. */
 async function viaProxy(url, now, used) {
   const order = ["scrapedo", "firecrawl"].sort((a, b) => allowance(b, now) - allowance(a, now));
+  order.push("firecrawl2"); // standby; allowance() is 0 unless key 1 is down
   let err;
   for (const p of order) {
     if (allowance(p, now) <= 0) continue;
-    try { const d = await (p === "firecrawl" ? viaFirecrawl(url, now) : viaScrapedo(url, now)); used.add(p); return d; }
+    try { const d = await (p === "scrapedo" ? viaScrapedo(url, now) : viaFirecrawl(url, now, p)); used.add(p); return d; }
     catch (e) { err = e; console.log(`  ${p} ${new URL(url).pathname}: ${scrub(e.message)}`); }
   }
   throw err ?? new Error("proxy budget exhausted");
@@ -247,7 +261,8 @@ function sanitizeRace(r) {
 
 /* ---------------- main ---------------- */
 const started = Date.now();
-await firecrawlCreditCheck(started);
+await firecrawlCreditCheck("firecrawl", started);
+if (fcDown("firecrawl", started)) await firecrawlCreditCheck("firecrawl2", started);
 const prevRaces = (prev.races || []).filter((x) => Date.parse(x.ends_at) > started);
 const prevHealth = Object.fromEntries((prev.health || []).map((h) => [h.id, h]));
 const health = [], races = [];
