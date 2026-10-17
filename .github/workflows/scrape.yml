@@ -1,0 +1,32 @@
+name: scrape
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Previous feed
+        run: curl -fsS "https://raw.githubusercontent.com/${{ github.repository }}/data/races.json?t=$(date +%s)" -o prev.json || echo '{}' > prev.json
+      - name: Scrape
+        run: node --experimental-strip-types --no-warnings scrape.mjs prev.json
+      - name: Publish to data branch
+        run: |
+          cd out
+          git init -q -b data
+          git config user.name "race-feed-bot"
+          git config user.email "race-feed-bot@users.noreply.github.com"
+          git add races.json
+          git commit -qm "feed $(date -u +%FT%TZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" data
