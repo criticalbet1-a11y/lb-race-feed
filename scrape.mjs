@@ -1,12 +1,15 @@
 // Race feed scraper. Each source has its own fetch strategy + cadence:
-//   jack     direct, every run
+//   jack     direct -> headless Chromium (Playwright) fallback on 403/challenge, every run (no paid proxy)
 //   duckdice direct -> headless Chromium (Playwright) fallback, every run
 //   tower    Firecrawl (DE) / Scrape.do (DE), budget-paced (~25 min contest, 4 h weekly tournament)
 //   frogbet  direct -> Microlink (no key, <=20/day, ~72 min) -> Firecrawl/Scrape.do if budget allows
-// Usage: node --experimental-strip-types scrape.mjs <dir>   (reads/writes <dir>/races.json + <dir>/state.json)
+// Usage: node --experimental-strip-types scrape.mjs <dir>
+//   reads/writes <dir>/races.json (live `races` + frozen `finished`) and <dir>/state.json
 // Secrets come from env (FIRECRAWL_API_KEY, SCRAPEDO_TOKEN) and are never written or logged.
 import fs from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
+import { FINISHED_CAP, mergeFinished, periodKey, priorLive, splitPrev } from "./src/archive.ts";
 import { ADAPTERS } from "./src/races.ts";
 
 const DIR = process.argv[2] || "out";
@@ -183,9 +186,21 @@ async function browserGetJSON(pageUrl) {
 const adapter = Object.fromEntries(ADAPTERS.map((a) => [a.id, a]));
 const ageMin = (iso, now) => (iso ? (now - Date.parse(iso)) / MIN : Infinity);
 
+const transportError = (msg) => /403|429|blocked|challenge|fetch failed|timeout|abort|5\d\d/i.test(String(msg ?? ""));
+
 const RUNNERS = {
   async jack(now) {
-    return { races: await adapter.jack.run({ now, getJSON: (u, r) => direct(u, r) }), via: "direct" };
+    try {
+      return { races: await adapter.jack.run({ now, getJSON: (u, r) => direct(u, r) }), via: "direct" };
+    } catch (e) {
+      // Paid proxies stay unused. Browser only after a block, same path as DuckDice.
+      if (!transportError(e.message)) throw e;
+      console.log(`  jack direct: ${scrub(e.message)} -> browser`);
+      const b = await browserGetJSON("https://jack.com/en/tournaments");
+      try {
+        return { races: await adapter.jack.run({ now: Date.now(), getJSON: (u) => b.get(u) }), via: "browser" };
+      } finally { await b.close(); }
+    }
   },
   async duckdice(now) {
     try { return { races: await adapter.duckdice.run({ now, getJSON: (u, r) => direct(u, r) }), via: "direct" }; }
@@ -239,9 +254,10 @@ const RUNNERS = {
 const clean = (s, n) => (typeof s === "string" ? s.replace(/<[^>]*>/g, "").replace(/[\u0000-\u001f<>"`]/g, "").replace(/\s+/g, " ").trim().slice(0, n) : null);
 const okNum = (v, lo, hi) => typeof v === "number" && Number.isFinite(v) && v >= lo && v <= hi;
 const okIso = (s) => typeof s === "string" && /^\d{4}-\d\d-\d\dT[\d:.]+Z$/.test(s) && Number.isFinite(Date.parse(s));
-function sanitizeRace(r) {
+function sanitizeRace(r, { finished = false } = {}) {
   if (!r || !/^[a-z0-9-]{3,60}$/.test(r.id) || !["frogbet", "jack", "duckdice", "tower"].includes(r.source_id)) return null;
   if (!["weekly", "monthly"].includes(r.cadence) || !okNum(r.prize_pool, 0, 5e6) || !okIso(r.ends_at) || !okIso(r.started_at) || !okIso(r.snapshot_at)) return null;
+  if (finished && !okIso(r.finished_at)) return null;
   const leaderboard = (Array.isArray(r.leaderboard) ? r.leaderboard : []).slice(0, 30).flatMap((x) => {
     if (!okNum(x?.place, 1, 1000) || !okNum(x?.wagered, 0, 1e10)) return [];
     return [{ place: Math.round(x.place), player: clean(x.player, 24) || "Hidden", wagered: x.wagered, prize: okNum(x.prize, 0, 5e6) ? x.prize : null, prize_extra: clean(x.prize_extra, 40) }];
@@ -256,49 +272,91 @@ function sanitizeRace(r) {
     duration_seconds: okNum(r.duration_seconds, 3600, 40 * 86400) ? Math.round(r.duration_seconds) : 0,
     snapshot_at: r.snapshot_at, expected_interval_s: okNum(r.expected_interval_s, 60, 86400) ? r.expected_interval_s : 600,
     leaderboard, top_prizes: leaderboard.slice(0, 5).map((x) => x.prize ?? 0),
+    ...(finished ? { finished_at: r.finished_at } : {}),
   };
 }
 
 /* ---------------- main ---------------- */
-const started = Date.now();
-await firecrawlCreditCheck("firecrawl", started);
-if (fcDown("firecrawl", started)) await firecrawlCreditCheck("firecrawl2", started);
-const prevRaces = (prev.races || []).filter((x) => Date.parse(x.ends_at) > started);
-const prevHealth = Object.fromEntries((prev.health || []).map((h) => [h.id, h]));
-const health = [], races = [];
-const intervalFor = (r) => (r.source_id === "tower" ? CADENCE[r.id.includes("tournament") ? "tower-tournament" : "tower-contest"] : CADENCE[r.source_id]);
+export { sanitizeRace };
 
-for (const a of ADAPTERS) {
-  const now = Date.now();
-  let res, error;
-  try { res = await RUNNERS[a.id](now); } catch (e) { error = scrub(e.message || e); }
-  const kept = prevRaces.filter((x) => x.source_id === a.id);
-  if (res?.races?.length) {
-    const fresh = res.races.map((r) => ({ ...r, expected_interval_s: intervalFor(r) }));
-    if (a.id === "tower") {
-      state.last["tower-contest"] = new Date(now).toISOString();
-      if (res.tournamentFetched) state.last["tower-tournament"] = new Date(now).toISOString();
+async function main() {
+  const started = Date.now();
+  await firecrawlCreditCheck("firecrawl", started);
+  if (fcDown("firecrawl", started)) await firecrawlCreditCheck("firecrawl2", started);
+  // Previously-live rows, including ones whose ends_at has now passed. `unfinished`
+  // is an older holding list if a snapshot wrote one; `races` wins on the same period.
+  const prevLive = priorLive(prev.races, prev.unfinished);
+  const prevFinished = Array.isArray(prev.finished) ? prev.finished : [];
+  const prevHealth = Object.fromEntries((prev.health || []).map((h) => [h.id, h]));
+  const health = [], live = [], toArchive = [];
+  const intervalFor = (r) => (r.source_id === "tower" ? CADENCE[r.id.includes("tournament") ? "tower-tournament" : "tower-contest"] : CADENCE[r.source_id]);
+
+  for (const a of ADAPTERS) {
+    const now = Date.now();
+    let res, error;
+    try { res = await RUNNERS[a.id](now); } catch (e) { error = scrub(e.message || e); }
+    const prevFor = prevLive.filter((x) => x.source_id === a.id);
+    const stamped = res?.races?.length ? res.races.map((r) => ({ ...r, expected_interval_s: intervalFor(r) })) : null;
+    // Ignore a payload that sanitizes to nothing so a bad body cannot erase the last good board.
+    const usable = stamped?.filter((r) => sanitizeRace(r)) ?? null;
+    const fetchedOk = Boolean(usable?.length);
+    if (fetchedOk) {
+      if (a.id === "tower") {
+        state.last["tower-contest"] = new Date(now).toISOString();
+        if (res.tournamentFetched) state.last["tower-tournament"] = new Date(now).toISOString();
+      }
+      state.last[a.id] = new Date(now).toISOString();
     }
-    state.last[a.id] = new Date(now).toISOString();
-    const ids = new Set(fresh.map((r) => r.id));
-    // Parts not refreshed this run (e.g. Tower's weekly tournament) keep their own older snapshot_at.
-    races.push(...fresh, ...kept.filter((r) => !ids.has(r.id) && !(a.id === "tower" && r.id.includes("tournament") && res.tournamentFetched)));
-    health.push({ id: a.id, casino: a.casino, status: "ok", via: res.via, fetched_at: new Date(now).toISOString(), expected_interval_s: CADENCE[a.id] ?? CADENCE["tower-contest"], races: res.races.length });
-  } else {
-    races.push(...kept);
-    const ph = prevHealth[a.id] || {};
-    const fetched_at = ph.fetched_at ?? null;
-    const due = CADENCE[a.id] ?? CADENCE["tower-contest"];
-    const status = res?.skip ? (kept.length ? "ok" : "error") : kept.length ? "stale" : "error";
-    health.push({ id: a.id, casino: a.casino, status, via: res?.skip ? ph.via ?? null : null, fetched_at, expected_interval_s: due, races: kept.length, ...(error || (res && !res.skip) ? { error: error || "no running weekly/monthly race" } : {}), ...(res?.skip ? { note: res.skip } : {}) });
-  }
-}
-if (browser) await browser.close();
+    const split = splitPrev(prevFor, fetchedOk ? usable : null, now, {
+      fetched: (old) => {
+        if (!fetchedOk) return false;
+        // Tower's weekly list is on a slower cadence. Not querying it is not "gone".
+        if (a.id === "tower" && String(old.id).includes("tournament") && !res.tournamentFetched) return false;
+        return true;
+      },
+      dropIfMissing: (old) => {
+        if (!fetchedOk || a.id !== "tower" || !res.tournamentFetched || !String(old.id).includes("tournament")) return false;
+        return !(res.races ?? []).some((r) => r.id === old.id);
+      },
+    });
+    live.push(...split.live);
+    toArchive.push(...split.archive);
 
-const feed = { updated_at: new Date().toISOString(), health, races: races.map(sanitizeRace).filter(Boolean) };
-fs.mkdirSync(DIR, { recursive: true });
-fs.writeFileSync(path.join(DIR, "races.json"), JSON.stringify(feed, null, 1) + "\n");
-fs.writeFileSync(path.join(DIR, "state.json"), JSON.stringify(state, null, 1) + "\n");
-for (const h of health) console.log(`${h.id}: ${h.status} via=${h.via ?? "-"} fetched_at=${h.fetched_at ?? "-"} races=${h.races}${h.error ? ` error=${h.error}` : ""}${h.note ? ` (${h.note})` : ""}`);
-for (const r of feed.races) console.log(`  ${r.id} snap=${r.snapshot_at} pool=${r.prize_pool} top3=${r.leaderboard.slice(0, 3).map((x) => `${x.place}.${x.player}:${x.wagered}`).join(" | ")}`);
-for (const [p, b] of Object.entries(state.budget)) console.log(`budget ${p}: day=${b.used_day} month=${b.used_month}${b.remaining != null ? ` fc_remaining_at_check=${b.remaining}` : ""}`);
+    const ph = prevHealth[a.id] || {};
+    const due = CADENCE[a.id] ?? CADENCE["tower-contest"];
+    if (fetchedOk) {
+      const keptNote = a.id === "tower" && !res.tournamentFetched && split.live.some((r) => String(r.id).includes("tournament"));
+      health.push({ id: a.id, casino: a.casino, status: "ok", via: res.via, fetched_at: new Date(now).toISOString(), expected_interval_s: due, races: 0, ...(keptNote ? { note: "weekly tournament kept" } : {}) });
+    } else if (res?.skip) {
+      // Cadence skip is not a failure, even when every previous row just moved to finished.
+      health.push({ id: a.id, casino: a.casino, status: "ok", via: ph.via ?? null, fetched_at: ph.fetched_at ?? state.last[a.id] ?? null, expected_interval_s: due, races: 0, note: res.skip });
+    } else {
+      health.push({ id: a.id, casino: a.casino, status: split.live.length ? "stale" : "error", via: ph.via ?? null, fetched_at: ph.fetched_at ?? state.last[a.id] ?? null, expected_interval_s: due, races: 0, error: error || "no running weekly/monthly race" });
+    }
+  }
+  if (browser) await browser.close();
+
+  const finishedAt = new Date().toISOString();
+  const finished = mergeFinished(prevFinished, toArchive, finishedAt, FINISHED_CAP, (r) => sanitizeRace(r, { finished: true }));
+  const finishedKeys = new Set(finished.map(periodKey));
+  const races = [];
+  for (const r of live) {
+    const s = sanitizeRace(r);
+    if (!s || finishedKeys.has(periodKey(s))) continue;
+    races.push(s);
+  }
+  for (const h of health) h.races = races.filter((r) => r.source_id === h.id).length;
+
+  const feed = { updated_at: new Date().toISOString(), health, races, finished };
+  fs.mkdirSync(DIR, { recursive: true });
+  fs.writeFileSync(path.join(DIR, "races.json"), JSON.stringify(feed, null, 1) + "\n");
+  fs.writeFileSync(path.join(DIR, "state.json"), JSON.stringify(state, null, 1) + "\n");
+  for (const h of health) console.log(`${h.id}: ${h.status} via=${h.via ?? "-"} fetched_at=${h.fetched_at ?? "-"} races=${h.races}${h.error ? ` error=${h.error}` : ""}${h.note ? ` (${h.note})` : ""}`);
+  for (const r of feed.races) console.log(`  ${r.id} snap=${r.snapshot_at} ends=${r.ends_at} pool=${r.prize_pool} top3=${r.leaderboard.slice(0, 3).map((x) => `${x.place}.${x.player}:${x.wagered}`).join(" | ")}`);
+  console.log(`finished: ${feed.finished.length}`);
+  for (const r of feed.finished) console.log(`  done ${r.id} ends=${r.ends_at} finished_at=${r.finished_at} snap=${r.snapshot_at}`);
+  for (const [p, b] of Object.entries(state.budget)) console.log(`budget ${p}: day=${b.used_day} month=${b.used_month}${b.remaining != null ? ` fc_remaining_at_check=${b.remaining}` : ""}`);
+}
+
+const invokedDirectly = process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+if (invokedDirectly) await main();
