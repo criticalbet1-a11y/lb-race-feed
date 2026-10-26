@@ -1,5 +1,6 @@
 // Race feed scraper. Each source has its own fetch strategy + cadence:
-//   jack     direct -> headless Chromium (Playwright) fallback on 403/challenge, every run (no paid proxy)
+//   jack     direct -> headless Chromium -> Scrape.do (Firecrawl only if Scrape.do fails), every run
+//            paid step only after a block, at most every 12 h (3 calls: list + casino boards)
 //   duckdice direct -> headless Chromium (Playwright) fallback, every run
 //   tower    Firecrawl (DE) / Scrape.do (DE), budget-paced (~25 min contest, 4 h weekly tournament)
 //   frogbet  direct -> Microlink (no key, <=20/day, ~72 min) -> Firecrawl/Scrape.do if budget allows
@@ -24,6 +25,11 @@ const MIN = 60_000;
 
 /* ---------------- cadence (seconds, also published so the site can judge freshness) ---------------- */
 const CADENCE = { jack: 600, duckdice: 600, frogbet: 72 * 60, "tower-contest": 25 * 60, "tower-tournament": 4 * 3600 };
+// One Jack refresh is the active-board list plus one tournament payload per casino
+// board (sports is not requested): 3 calls today. Every 10 min would spend the
+// shared day pace Tower needs. 12 h is 6 calls/day and still fits that spare.
+export const JACK_PAID_CADENCE_S = 12 * 3600;
+export const JACK_PAID_CALLS = 3;
 const TOWER_EVENT_TTL = 12 * 3600_000; // re-lookup the current monthly contest hash at most ~2x/day
 const MONTH_CAP = 950; // per paid-proxy provider, per calendar month (UTC)
 const DAY_CAP = 45;
@@ -187,20 +193,122 @@ const adapter = Object.fromEntries(ADAPTERS.map((a) => [a.id, a]));
 const ageMin = (iso, now) => (iso ? (now - Date.parse(iso)) / MIN : Infinity);
 
 const transportError = (msg) => /403|429|blocked|challenge|fetch failed|timeout|abort|5\d\d/i.test(String(msg ?? ""));
+const errText = (e) => String(e?.message ?? e);
+
+/** Which paid path Jack may start. Free paths are decided by the caller. */
+export function jackPaidChoice(now, { lastOk, paidAt, allowances } = {}) {
+  const age = (iso) => {
+    const t = typeof iso === "string" ? Date.parse(iso) : NaN;
+    return Number.isFinite(t) ? (now - t) / 1000 : Infinity;
+  };
+  if (age(lastOk) < JACK_PAID_CADENCE_S - 120) return { kind: "skip" };
+  if (age(paidAt) < JACK_PAID_CADENCE_S - 120) return { kind: "backoff" };
+  const sd = allowances?.scrapedo ?? 0;
+  const fc = Math.max(allowances?.firecrawl ?? 0, allowances?.firecrawl2 ?? 0);
+  if (sd >= JACK_PAID_CALLS) return { kind: "scrapedo" };
+  if (fc >= JACK_PAID_CALLS) return { kind: "firecrawl" };
+  return { kind: "exhausted" };
+}
+
+/**
+ * Jack order: direct, then headless Chromium, then Scrape.do, then Firecrawl.
+ * Paid calls run only after a transport failure, and at most once per cadence
+ * (a failed paid attempt backs off the same way, so Firecrawl is not charged
+ * on every 10-minute loop). Scrape.do wins when it has a full refresh left,
+ * even if Firecrawl has more allowance.
+ */
+export async function fetchJack(opts) {
+  try {
+    return { races: await opts.run((u, r) => opts.direct(u, r), "direct"), via: "direct", expected_interval_s: CADENCE.jack };
+  } catch (e) {
+    if (!transportError(errText(e))) throw e;
+    console.log(`  jack direct: ${scrub(errText(e))} -> browser`);
+  }
+  try {
+    const b = await opts.browser();
+    try {
+      return { races: await opts.run((u) => b.get(u), "browser"), via: "browser", expected_interval_s: CADENCE.jack };
+    } finally { await Promise.resolve(b?.close?.()).catch(() => {}); }
+  } catch (e) {
+    const msg = errText(e);
+    if (!transportError(msg) && !/playwright|chromium|executable|browserType/i.test(msg)) throw e;
+    console.log(`  jack browser: ${scrub(msg)} -> proxy`);
+  }
+  const choice = jackPaidChoice(opts.now, opts);
+  if (choice.kind === "skip") return { skip: "not due", expected_interval_s: JACK_PAID_CADENCE_S };
+  if (choice.kind === "backoff") {
+    console.log("  jack proxy: backoff");
+    throw new Error(opts.lastProxyError || "jack proxy backoff");
+  }
+  if (choice.kind !== "scrapedo" && choice.kind !== "firecrawl") throw new Error("jack proxy budget exhausted");
+  opts.onPaidAttempt?.(opts.now);
+  const allowances = opts.allowances ?? {};
+  const fcProviders = ["firecrawl", "firecrawl2"].filter((p) => (allowances[p] ?? 0) >= JACK_PAID_CALLS);
+  let skipScrapedo = choice.kind !== "scrapedo";
+  const used = new Set();
+  const getJSON = async (url) => {
+    if (!skipScrapedo) {
+      try {
+        const data = await opts.scrapedo(url);
+        used.add("scrapedo");
+        return data;
+      } catch (e) {
+        const msg = errText(e);
+        console.log(`  jack scrapedo: ${scrub(msg)}`);
+        if (/403|blocked|challenge/i.test(msg)) skipScrapedo = true;
+        if (!fcProviders.length) throw e;
+      }
+    }
+    let err;
+    for (const p of fcProviders) {
+      try {
+        const data = await opts.firecrawl(url, p);
+        used.add(p);
+        return data;
+      } catch (e) {
+        err = e;
+        console.log(`  jack ${p}: ${scrub(errText(e))}`);
+      }
+    }
+    throw err ?? new Error("jack proxy budget exhausted");
+  };
+  try {
+    const races = await opts.run(getJSON, choice.kind);
+    opts.onPaidSuccess?.();
+    return { races, via: [...used].join("+") || choice.kind, expected_interval_s: JACK_PAID_CADENCE_S };
+  } catch (e) {
+    opts.onPaidFailure?.(errText(e));
+    throw e;
+  }
+}
 
 const RUNNERS = {
   async jack(now) {
-    try {
-      return { races: await adapter.jack.run({ now, getJSON: (u, r) => direct(u, r) }), via: "direct" };
-    } catch (e) {
-      // Paid proxies stay unused. Browser only after a block, same path as DuckDice.
-      if (!transportError(e.message)) throw e;
-      console.log(`  jack direct: ${scrub(e.message)} -> browser`);
-      const b = await browserGetJSON("https://jack.com/en/tournaments");
-      try {
-        return { races: await adapter.jack.run({ now: Date.now(), getJSON: (u) => b.get(u) }), via: "browser" };
-      } finally { await b.close(); }
-    }
+    return fetchJack({
+      now,
+      lastOk: state.last?.jack ?? null,
+      paidAt: state.jack?.paid_at ?? null,
+      lastProxyError: state.jack?.error ?? null,
+      allowances: {
+        scrapedo: allowance("scrapedo", now),
+        firecrawl: allowance("firecrawl", now),
+        firecrawl2: allowance("firecrawl2", now),
+      },
+      run: (getJSON, via) => adapter.jack.run({ now: via === "direct" ? now : Date.now(), getJSON }),
+      direct: (url, referer) => direct(url, referer),
+      browser: () => browserGetJSON("https://jack.com/en/tournaments"),
+      scrapedo: (url) => viaScrapedo(url, now),
+      firecrawl: (url, provider) => viaFirecrawl(url, now, provider),
+      onPaidAttempt: () => {
+        state.jack ??= {};
+        state.jack.paid_at = new Date(now).toISOString();
+      },
+      onPaidFailure: (message) => {
+        state.jack ??= {};
+        state.jack.error = scrub(message);
+      },
+      onPaidSuccess: () => { if (state.jack) delete state.jack.error; },
+    });
   },
   async duckdice(now) {
     try { return { races: await adapter.duckdice.run({ now, getJSON: (u, r) => direct(u, r) }), via: "direct" }; }
@@ -296,7 +404,7 @@ async function main() {
     let res, error;
     try { res = await RUNNERS[a.id](now); } catch (e) { error = scrub(e.message || e); }
     const prevFor = prevLive.filter((x) => x.source_id === a.id);
-    const stamped = res?.races?.length ? res.races.map((r) => ({ ...r, expected_interval_s: intervalFor(r) })) : null;
+    const stamped = res?.races?.length ? res.races.map((r) => ({ ...r, expected_interval_s: res.expected_interval_s ?? intervalFor(r) })) : null;
     // Ignore a payload that sanitizes to nothing so a bad body cannot erase the last good board.
     const usable = stamped?.filter((r) => sanitizeRace(r)) ?? null;
     const fetchedOk = Boolean(usable?.length);
@@ -326,10 +434,10 @@ async function main() {
     const due = CADENCE[a.id] ?? CADENCE["tower-contest"];
     if (fetchedOk) {
       const keptNote = a.id === "tower" && !res.tournamentFetched && split.live.some((r) => String(r.id).includes("tournament"));
-      health.push({ id: a.id, casino: a.casino, status: "ok", via: res.via, fetched_at: new Date(now).toISOString(), expected_interval_s: due, races: 0, ...(keptNote ? { note: "weekly tournament kept" } : {}) });
+      health.push({ id: a.id, casino: a.casino, status: "ok", via: res.via, fetched_at: new Date(now).toISOString(), expected_interval_s: res.expected_interval_s ?? due, races: 0, ...(keptNote ? { note: "weekly tournament kept" } : {}) });
     } else if (res?.skip) {
       // Cadence skip is not a failure, even when every previous row just moved to finished.
-      health.push({ id: a.id, casino: a.casino, status: "ok", via: ph.via ?? null, fetched_at: ph.fetched_at ?? state.last[a.id] ?? null, expected_interval_s: due, races: 0, note: res.skip });
+      health.push({ id: a.id, casino: a.casino, status: "ok", via: ph.via ?? null, fetched_at: ph.fetched_at ?? state.last[a.id] ?? null, expected_interval_s: res.expected_interval_s ?? due, races: 0, note: res.skip });
     } else {
       health.push({ id: a.id, casino: a.casino, status: split.live.length ? "stale" : "error", via: ph.via ?? null, fetched_at: ph.fetched_at ?? state.last[a.id] ?? null, expected_interval_s: due, races: 0, error: error || "no running weekly/monthly race" });
     }
@@ -356,6 +464,7 @@ async function main() {
   console.log(`finished: ${feed.finished.length}`);
   for (const r of feed.finished) console.log(`  done ${r.id} ends=${r.ends_at} finished_at=${r.finished_at} snap=${r.snapshot_at}`);
   for (const [p, b] of Object.entries(state.budget)) console.log(`budget ${p}: day=${b.used_day} month=${b.used_month}${b.remaining != null ? ` fc_remaining_at_check=${b.remaining}` : ""}`);
+  if (state.jack?.paid_at) console.log(`jack paid_at=${state.jack.paid_at}${state.jack.error ? ` error=${state.jack.error}` : ""}`);
 }
 
 const invokedDirectly = process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
