@@ -6,6 +6,8 @@
  * Rules every adapter follows:
  *  - Only weekly (5-10 days) and monthly (25-35 days) races. Daily, hourly
  *    and "promo" races are skipped here AND by the client parser.
+ *  - Sports FreeBet boards are not casino wager races. Jack sports
+ *    tournaments are skipped here and are never archived.
  *  - Player names leave this file masked (first 3 chars + *****); hidden /
  *    ghost players become "Hidden". Raw usernames are never sent.
  *  - No partner or source URLs in the output. Endpoints stay server-side.
@@ -44,6 +46,8 @@ export interface NormRace {
   leaderboard: Row[];
   top_prizes: number[];
   updating?: boolean;
+  /** Set only on a frozen row in `finished`. Absent on live races. */
+  finished_at?: string;
 }
 
 export interface Adapter {
@@ -152,9 +156,48 @@ const frogbet: Adapter = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* Jack: weekly tournaments. GET jack.com/api/leaderBoard/getActiveLeaderBoards */
-/*   + getLeaderBoardTournamentInfo?leaderBoardId=<id> (currentPrize = this week) */
+/* Jack: casino weekly/monthly tournaments. Sports FreeBet boards are excluded. */
+/*   GET jack.com/api/leaderBoard/getActiveLeaderBoards                     */
+/*   + getLeaderBoardTournamentInfo?leaderBoardId=<id> (currentPrize)       */
+/*   Window is CurrentStartDate/CurrentEndDate when present, so a one-shot  */
+/*   week is not cut down to the next Wednesday.                            */
 /* -------------------------------------------------------------------------- */
+
+/** Sports FreeBet boards stay out of the casino feed (live and finished). */
+function isJackSportsBoard(b: Obj): boolean {
+  const bits = [b.TypeName, b.LeaderBoardName, b.Title, b.ShortDescription, b.LeaderBoardDesigneTypeName];
+  return bits.some((v) => /\bsports?\b|\bsportsbook\b/i.test(str(v) ?? ""));
+}
+
+function parseJackDate(v: unknown): number {
+  const s = str(v);
+  if (!s) return NaN;
+  return Date.parse(/Z$/i.test(s) ? s : `${s}Z`);
+}
+
+function jackPeriod(b: Obj, now: number, weekly: boolean): { started: number; ends: number; dur: number } | null {
+  const curStart = parseJackDate(b.CurrentStartDate);
+  const curEnd = parseJackDate(b.CurrentEndDate);
+  // Current dates exist: this window is the race. If it has already ended, do not
+  // relabel the same leaderboard as next Wednesday.
+  if (Number.isFinite(curStart) && Number.isFinite(curEnd) && curEnd > curStart) {
+    if (curEnd <= now) return null;
+    return { started: curStart, ends: curEnd, dur: Math.round((curEnd - curStart) / 1000) };
+  }
+  const campaignEnd = parseJackDate(b.EndDate);
+  const campaignStart = parseJackDate(b.StartDate);
+  if (weekly) {
+    let ends = nextJackReset(now);
+    if (Number.isFinite(campaignEnd) && campaignEnd < ends) ends = campaignEnd;
+    if (!Number.isFinite(ends) || ends <= now) return null;
+    return { started: ends - 7 * DAY * 1000, ends, dur: 7 * DAY };
+  }
+  if (!Number.isFinite(campaignEnd) || campaignEnd <= now) return null;
+  const campaignDur = (campaignEnd - campaignStart) / 1000;
+  const dur = cadenceFor(campaignDur) ? campaignDur : 30 * DAY;
+  const started = Number.isFinite(campaignStart) ? campaignStart : campaignEnd - dur * 1000;
+  return { started, ends: campaignEnd, dur };
+}
 
 /** Next weekly reset (Wednesday 12:00 UTC) strictly after `now`. */
 export function nextJackReset(now: number): number {
@@ -175,7 +218,8 @@ const jack: Adapter = {
     const list = await getJSON("https://jack.com/api/leaderBoard/getActiveLeaderBoards?languageId=1", ref);
     if (!Array.isArray(list)) throw new Error("unexpected shape");
     const boards = list.filter(
-      (b): b is Obj => isObj(b) && b.LeaderBoardStatus === 1 && /^(weekly|monthly)$/i.test(str(b.TypeName) ?? ""),
+      (b): b is Obj =>
+        isObj(b) && b.LeaderBoardStatus === 1 && /^(weekly|monthly)$/i.test(str(b.TypeName) ?? "") && !isJackSportsBoard(b),
     );
     if (!boards.length) throw new Error("no active weekly/monthly leaderboard");
     const out: NormRace[] = [];
@@ -183,13 +227,10 @@ const jack: Adapter = {
       const id = num(b.Id);
       if (id === null) continue;
       const weekly = /weekly/i.test(str(b.TypeName) ?? "");
-      const campaignEnd = Date.parse(`${str(b.EndDate)}Z`);
-      let ends = weekly ? nextJackReset(now) : campaignEnd;
-      if (Number.isFinite(campaignEnd) && campaignEnd < ends) ends = campaignEnd;
-      if (!Number.isFinite(ends) || ends <= now) continue;
-      const campaignStart = Date.parse(`${str(b.StartDate)}Z`);
-      const campaignDur = (campaignEnd - campaignStart) / 1000;
-      const dur = weekly ? 7 * DAY : cadenceFor(campaignDur) ? campaignDur : 30 * DAY;
+      const period = jackPeriod(b, now, weekly);
+      if (!period) continue;
+      const cadence = cadenceFor(period.dur);
+      if (!cadence) continue;
       const info = await getJSON(`https://jack.com/api/leaderBoard/getLeaderBoardTournamentInfo?languageId=1&leaderBoardId=${id}`, `${ref}/${id}`);
       if (!isObj(info)) throw new Error("unexpected tournament info");
       const rows: Row[] = arr(info.currentPrize).flatMap((x) => {
@@ -200,17 +241,24 @@ const jack: Adapter = {
         const amount = num(x.amount);
         return [{ place, player: mask(x.userName), wagered: Math.round(pts), prize: amount && amount > 0 ? amount : null, prize_extra: str(x.prize) }];
       });
-      // The weekly board pays the sum of its listed prizes; PrizeFund is the whole campaign.
+      // Listed prizes are this window. PrizeFund is the whole campaign.
       const pool = rows.reduce((s, r) => s + (r.prize ?? 0), 0);
       const rule = (str(b.Rule) ?? "").replace(/&quot;/g, '"');
       const quoted = rule.match(/"([A-Z][A-Za-z' ]{2,40})"/)?.[1];
-      const name = quoted ?? (str(b.LeaderBoardName) ?? "Weekly Tournament").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+      const fromBoard = (str(b.LeaderBoardName) ?? "Weekly Tournament").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+      // Id stays on the historical slug so a clearer title does not fork the row.
+      const legacyName = quoted ?? fromBoard;
+      const title = (str(b.Title) ?? "").replace(/[\u2018\u2019]/g, "'");
+      const genericTitle = !title || /^(weekly|monthly)\b/i.test(title);
+      const name = quoted ?? (genericTitle ? fromBoard : title);
       const fund = str(b.PrizeFund);
+      const campaignEnd = parseJackDate(b.EndDate);
+      const recurring = weekly && Number.isFinite(campaignEnd) && campaignEnd > period.ends + 36 * 3600 * 1000;
       out.push(
         finish({
-          id: `jack-${slug(name)}`,
+          id: `jack-${slug(legacyName)}`,
           source_id: "jack",
-          cadence: weekly ? "weekly" : "monthly",
+          cadence,
           casino: "Jack",
           casino_logo: null,
           name,
@@ -220,10 +268,10 @@ const jack: Adapter = {
           score_unit: "points",
           points_per_dollar: 1,
           eligible_games: ["Slots", "Live casino"],
-          source: `JACK public tournament leaderboard (jack.com/en/tournaments/${id}). 1 point per $1 wagered; resets Wednesdays 12:00 UTC.${fund ? ` Campaign prize fund ${fund.replace(/\s/g, ",")}.` : ""}`,
-          started_at: iso(ends - dur * 1000),
-          ends_at: iso(ends),
-          duration_seconds: dur,
+          source: `JACK public tournament leaderboard (jack.com/en/tournaments/${id}). 1 point per $1 wagered.${recurring ? " Resets Wednesdays 12:00 UTC." : ""}${fund ? ` Campaign prize fund ${fund.replace(/\s/g, ",")}.` : ""}`,
+          started_at: iso(period.started),
+          ends_at: iso(period.ends),
+          duration_seconds: period.dur,
           snapshot_at: iso(now),
           leaderboard: rows,
         }),
