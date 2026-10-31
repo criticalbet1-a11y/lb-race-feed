@@ -1,0 +1,1739 @@
+{
+ "updated_at": "2026-10-31T22:29:06.238Z",
+ "health": [
+  {
+   "id": "frogbet",
+   "casino": "FrogBet",
+   "status": "ok",
+   "via": "microlink",
+   "fetched_at": "2026-10-31T21:18:21.726Z",
+   "expected_interval_s": 4320,
+   "races": 1,
+   "note": "not due"
+  },
+  {
+   "id": "jack",
+   "casino": "Jack",
+   "status": "ok",
+   "via": "scrapedo",
+   "fetched_at": "2026-10-31T20:07:10.407Z",
+   "expected_interval_s": 43200,
+   "races": 1,
+   "note": "not due"
+  },
+  {
+   "id": "duckdice",
+   "casino": "DuckDice",
+   "status": "ok",
+   "via": "browser",
+   "fetched_at": "2026-10-31T22:28:43.482Z",
+   "expected_interval_s": 600,
+   "races": 1
+  },
+  {
+   "id": "tower",
+   "casino": "Tower",
+   "status": "ok",
+   "via": "firecrawl",
+   "fetched_at": "2026-10-31T22:09:06.251Z",
+   "expected_interval_s": 1500,
+   "races": 1,
+   "note": "not due"
+  }
+ ],
+ "races": [
+  {
+   "id": "frogbet-weekly-wager-race",
+   "source_id": "frogbet",
+   "cadence": "weekly",
+   "casino": "FrogBet",
+   "casino_logo": null,
+   "name": "Weekly Wager Race",
+   "prize_pool": 10000,
+   "prize_extra": null,
+   "currency": "USD",
+   "score_unit": "usd",
+   "points_per_dollar": null,
+   "eligible_games": [
+    "All games"
+   ],
+   "source": "FrogBet public wager-race leaderboard (frogbet.com/wager-race). Resets Wednesdays 00:00 UTC.",
+   "started_at": "2026-10-28T00:00:00.000Z",
+   "ends_at": "2026-11-04T00:00:00.000Z",
+   "duration_seconds": 604800,
+   "snapshot_at": "2026-10-31T21:18:21.882Z",
+   "expected_interval_s": 4320,
+   "leaderboard": [
+    {
+     "place": 1,
+     "player": "KindlyC*****",
+     "wagered": 445060.42,
+     "prize": 2500,
+     "prize_extra": null
+    },
+    {
+     "place": 2,
+     "player": "EtherJ*****",
+     "wagered": 148607.32,
+     "prize": 1500,
+     "prize_extra": null
+    },
+    {
+     "place": 3,
+     "player": "Humble*****",
+     "wagered": 137849.88,
+     "prize": 700,
+     "prize_extra": null
+    },
+    {
+     "place": 4,
+     "player": "IceWil*****",
+     "wagered": 92721.2,
+     "prize": 500,
+     "prize_extra": null
+    },
+    {
+     "place": 5,
+     "player": "LadenSta*****",
+     "wagered": 89497.29,
+     "prize": 400,
+     "prize_extra": null
+    },
+    {
+     "place": 6,
+     "player": "MeadowA*****",
+     "wagered": 81417.7,
+     "prize": 350,
+     "prize_extra": null
+    },
+    {
+     "place": 7,
+     "player": "FierceB*****",
+     "wagered": 64423.22,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 8,
+     "player": "FieldK*****",
+     "wagered": 61244.18,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 9,
+     "player": "Burning*****",
+     "wagered": 48175.5,
+     "prize": 200,
+     "prize_extra": null
+    },
+    {
+     "place": 10,
+     "player": "HollowD*****",
+     "wagered": 41468.14,
+     "prize": 150,
+     "prize_extra": null
+    },
+    {
+     "place": 11,
+     "player": "BlitheG*****",
+     "wagered": 30134.09,
+     "prize": 90,
+     "prize_extra": null
+    },
+    {
+     "place": 12,
+     "player": "Citrine*****",
+     "wagered": 28877.06,
+     "prize": 80,
+     "prize_extra": null
+    },
+    {
+     "place": 13,
+     "player": "Harmon*****",
+     "wagered": 28099.09,
+     "prize": 70,
+     "prize_extra": null
+    },
+    {
+     "place": 14,
+     "player": "HyperOd*****",
+     "wagered": 27093.1,
+     "prize": 60,
+     "prize_extra": null
+    },
+    {
+     "place": 15,
+     "player": "PowerGo*****",
+     "wagered": 24908.03,
+     "prize": 50,
+     "prize_extra": null
+    },
+    {
+     "place": 16,
+     "player": "FreshDia*****",
+     "wagered": 24321.86,
+     "prize": 40,
+     "prize_extra": null
+    },
+    {
+     "place": 17,
+     "player": "Pristine*****",
+     "wagered": 22042.13,
+     "prize": 35,
+     "prize_extra": null
+    },
+    {
+     "place": 18,
+     "player": "AuroraO*****",
+     "wagered": 20888.03,
+     "prize": 30,
+     "prize_extra": null
+    },
+    {
+     "place": 19,
+     "player": "Genesis*****",
+     "wagered": 19942.63,
+     "prize": 25,
+     "prize_extra": null
+    },
+    {
+     "place": 20,
+     "player": "Intrepid*****",
+     "wagered": 18752.5,
+     "prize": 20,
+     "prize_extra": null
+    }
+   ],
+   "top_prizes": [
+    2500,
+    1500,
+    700,
+    500,
+    400
+   ]
+  },
+  {
+   "id": "jack-western-wager",
+   "source_id": "jack",
+   "cadence": "weekly",
+   "casino": "Jack",
+   "casino_logo": null,
+   "name": "Western Wager",
+   "prize_pool": 9200,
+   "prize_extra": null,
+   "currency": "USD",
+   "score_unit": "points",
+   "points_per_dollar": 1,
+   "eligible_games": [
+    "Slots",
+    "Live casino"
+   ],
+   "source": "JACK public tournament leaderboard (jack.com/en/tournaments/2266). 1 point per $1 wagered. Resets Wednesdays 12:00 UTC. Campaign prize fund $40,000.",
+   "started_at": "2026-10-28T12:00:00.000Z",
+   "ends_at": "2026-11-04T12:00:00.000Z",
+   "duration_seconds": 604800,
+   "snapshot_at": "2026-10-31T20:07:32.532Z",
+   "expected_interval_s": 43200,
+   "leaderboard": [
+    {
+     "place": 1,
+     "player": "A****l",
+     "wagered": 2874712,
+     "prize": 2000,
+     "prize_extra": null
+    },
+    {
+     "place": 2,
+     "player": "u****s",
+     "wagered": 1159379,
+     "prize": 1500,
+     "prize_extra": null
+    },
+    {
+     "place": 3,
+     "player": "J****3",
+     "wagered": 814167,
+     "prize": 1000,
+     "prize_extra": null
+    },
+    {
+     "place": 4,
+     "player": "a****m",
+     "wagered": 760544,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 5,
+     "player": "a****4",
+     "wagered": 665428,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 6,
+     "player": "b****d",
+     "wagered": 555766,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 7,
+     "player": "D****l",
+     "wagered": 487405,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 8,
+     "player": "f****9",
+     "wagered": 422655,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 9,
+     "player": "d****o",
+     "wagered": 348708,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 10,
+     "player": "m****0",
+     "wagered": 296366,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 11,
+     "player": "h****3",
+     "wagered": 221092,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 12,
+     "player": "G****m",
+     "wagered": 207280,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 13,
+     "player": "A****a",
+     "wagered": 197005,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 14,
+     "player": "g****2",
+     "wagered": 195791,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 15,
+     "player": "M****e",
+     "wagered": 195157,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 16,
+     "player": "T****l",
+     "wagered": 189785,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 17,
+     "player": "H****v",
+     "wagered": 189570,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 18,
+     "player": "l****4",
+     "wagered": 168372,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 19,
+     "player": "h****7",
+     "wagered": 163089,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 20,
+     "player": "b****s",
+     "wagered": 153712,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 21,
+     "player": "D****r",
+     "wagered": 146015,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 22,
+     "player": "Y****1",
+     "wagered": 145953,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 23,
+     "player": "T****s",
+     "wagered": 139268,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 24,
+     "player": "v****l",
+     "wagered": 135374,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 25,
+     "player": "M****8",
+     "wagered": 132972,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 26,
+     "player": "d****r",
+     "wagered": 130844,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 27,
+     "player": "B****i",
+     "wagered": 114841,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 28,
+     "player": "j****4",
+     "wagered": 106260,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 29,
+     "player": "f****r",
+     "wagered": 102690,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 30,
+     "player": "O****e",
+     "wagered": 102670,
+     "prize": 100,
+     "prize_extra": null
+    }
+   ],
+   "top_prizes": [
+    2000,
+    1500,
+    1000,
+    300,
+    300
+   ]
+  },
+  {
+   "id": "duckdice-monthly-contest",
+   "source_id": "duckdice",
+   "cadence": "monthly",
+   "casino": "DuckDice",
+   "casino_logo": null,
+   "name": "Monthly Contest",
+   "prize_pool": 15000,
+   "prize_extra": "250,000 DECOY",
+   "currency": "USD",
+   "score_unit": "usd",
+   "points_per_dollar": null,
+   "eligible_games": [
+    "Dice",
+    "Sports"
+   ],
+   "source": "DuckDice public contest leaderboard (duckdice.io/monthly-event). Volume in USD; DuckDice counts wagers at a 1% house-edge rate.",
+   "started_at": "2026-10-07T14:00:00.000Z",
+   "ends_at": "2026-11-07T13:59:00.000Z",
+   "duration_seconds": 2678340,
+   "snapshot_at": "2026-10-31T22:29:05.337Z",
+   "expected_interval_s": 600,
+   "leaderboard": [
+    {
+     "place": 1,
+     "player": "Hidden",
+     "wagered": 29928661.99,
+     "prize": 3000,
+     "prize_extra": "50,000 DECOY"
+    },
+    {
+     "place": 2,
+     "player": "Imi*****",
+     "wagered": 11583003.98,
+     "prize": 2250,
+     "prize_extra": "37,500 DECOY"
+    },
+    {
+     "place": 3,
+     "player": "Hidden",
+     "wagered": 2377321.97,
+     "prize": 1500,
+     "prize_extra": "25,000 DECOY"
+    },
+    {
+     "place": 4,
+     "player": "Fed*****",
+     "wagered": 2322263.39,
+     "prize": 1200,
+     "prize_extra": "20,000 DECOY"
+    },
+    {
+     "place": 5,
+     "player": "Hidden",
+     "wagered": 1552568.78,
+     "prize": 975,
+     "prize_extra": "16,250 DECOY"
+    },
+    {
+     "place": 6,
+     "player": "Efy*****",
+     "wagered": 1395821.5,
+     "prize": 900,
+     "prize_extra": "15,000 DECOY"
+    },
+    {
+     "place": 7,
+     "player": "Yun*****",
+     "wagered": 1135411.05,
+     "prize": 750,
+     "prize_extra": "12,500 DECOY"
+    },
+    {
+     "place": 8,
+     "player": "pep*****",
+     "wagered": 991232.54,
+     "prize": 600,
+     "prize_extra": "10,000 DECOY"
+    },
+    {
+     "place": 9,
+     "player": "xXI*****",
+     "wagered": 960659.89,
+     "prize": 450,
+     "prize_extra": "7,500 DECOY"
+    },
+    {
+     "place": 10,
+     "player": "Hidden",
+     "wagered": 837856.18,
+     "prize": 300,
+     "prize_extra": "5,000 DECOY"
+    },
+    {
+     "place": 11,
+     "player": "Nab*****",
+     "wagered": 774590.37,
+     "prize": 225,
+     "prize_extra": "3,750 DECOY"
+    },
+    {
+     "place": 12,
+     "player": "RNG*****",
+     "wagered": 726281.02,
+     "prize": 225,
+     "prize_extra": "3,750 DECOY"
+    },
+    {
+     "place": 13,
+     "player": "ogd*****",
+     "wagered": 595210.54,
+     "prize": 225,
+     "prize_extra": "3,750 DECOY"
+    },
+    {
+     "place": 14,
+     "player": "Hidden",
+     "wagered": 538448.17,
+     "prize": 180,
+     "prize_extra": "3,000 DECOY"
+    },
+    {
+     "place": 15,
+     "player": "Str*****",
+     "wagered": 513810.91,
+     "prize": 165,
+     "prize_extra": "2,750 DECOY"
+    }
+   ],
+   "top_prizes": [
+    3000,
+    2250,
+    1500,
+    1200,
+    975
+   ]
+  },
+  {
+   "id": "tower-monthly-contest",
+   "source_id": "tower",
+   "cadence": "monthly",
+   "casino": "Tower",
+   "casino_logo": null,
+   "name": "Witch Sabbath Race",
+   "prize_pool": 5000,
+   "prize_extra": "250,000 DECOY",
+   "currency": "USD",
+   "score_unit": "usd",
+   "points_per_dollar": null,
+   "eligible_games": [
+    "All games (not TWG or DECOY)"
+   ],
+   "source": "Tower public monthly contest leaderboard (tower.bet/monthly-contest). Volume = USD wagered.",
+   "started_at": "2026-10-01T00:00:00.000Z",
+   "ends_at": "2026-10-31T23:50:00.000Z",
+   "duration_seconds": 2677800,
+   "snapshot_at": "2026-10-31T22:09:06.251Z",
+   "expected_interval_s": 1500,
+   "leaderboard": [
+    {
+     "place": 1,
+     "player": "Hidden",
+     "wagered": 1159489.54,
+     "prize": 1000,
+     "prize_extra": "50,000 DECOY"
+    },
+    {
+     "place": 2,
+     "player": "Ida*****",
+     "wagered": 564948.49,
+     "prize": 750,
+     "prize_extra": "37,500 DECOY"
+    },
+    {
+     "place": 3,
+     "player": "Hidden",
+     "wagered": 389665.03,
+     "prize": 500,
+     "prize_extra": "25,000 DECOY"
+    },
+    {
+     "place": 4,
+     "player": "Ful*****",
+     "wagered": 361080.72,
+     "prize": 450,
+     "prize_extra": "22,500 DECOY"
+    },
+    {
+     "place": 5,
+     "player": "Los*****",
+     "wagered": 273071.08,
+     "prize": 350,
+     "prize_extra": "12,500 DECOY"
+    },
+    {
+     "place": 6,
+     "player": "Hidden",
+     "wagered": 202416.8,
+     "prize": 300,
+     "prize_extra": "12,500 DECOY"
+    },
+    {
+     "place": 7,
+     "player": "Sir*****",
+     "wagered": 181231.36,
+     "prize": 250,
+     "prize_extra": "12,500 DECOY"
+    },
+    {
+     "place": 8,
+     "player": "jor*****",
+     "wagered": 179087.33,
+     "prize": 200,
+     "prize_extra": "10,000 DECOY"
+    },
+    {
+     "place": 9,
+     "player": "Tan*****",
+     "wagered": 150887.31,
+     "prize": 200,
+     "prize_extra": "7,500 DECOY"
+    },
+    {
+     "place": 10,
+     "player": "Dar*****",
+     "wagered": 138873.43,
+     "prize": 150,
+     "prize_extra": "7,500 DECOY"
+    },
+    {
+     "place": 11,
+     "player": "Eiz*****",
+     "wagered": 135111.5,
+     "prize": 150,
+     "prize_extra": "5,000 DECOY"
+    },
+    {
+     "place": 12,
+     "player": "Abb*****",
+     "wagered": 122908.33,
+     "prize": 150,
+     "prize_extra": "5,000 DECOY"
+    },
+    {
+     "place": 13,
+     "player": "Any*****",
+     "wagered": 115346.72,
+     "prize": 100,
+     "prize_extra": "3,750 DECOY"
+    },
+    {
+     "place": 14,
+     "player": "Yfe*****",
+     "wagered": 104671.91,
+     "prize": 100,
+     "prize_extra": "3,750 DECOY"
+    },
+    {
+     "place": 15,
+     "player": "Ant*****",
+     "wagered": 100832.31,
+     "prize": 100,
+     "prize_extra": "3,750 DECOY"
+    },
+    {
+     "place": 16,
+     "player": "Hidden",
+     "wagered": 96320.37,
+     "prize": 50,
+     "prize_extra": "2,500 DECOY"
+    },
+    {
+     "place": 17,
+     "player": "Chr*****",
+     "wagered": 86214.69,
+     "prize": 50,
+     "prize_extra": "2,500 DECOY"
+    },
+    {
+     "place": 18,
+     "player": "Fom*****",
+     "wagered": 75094.68,
+     "prize": 50,
+     "prize_extra": "1,250 DECOY"
+    },
+    {
+     "place": 19,
+     "player": "chr*****",
+     "wagered": 73707.25,
+     "prize": 50,
+     "prize_extra": "1,250 DECOY"
+    },
+    {
+     "place": 20,
+     "player": "Sme*****",
+     "wagered": 72604.71,
+     "prize": 50,
+     "prize_extra": "1,250 DECOY"
+    },
+    {
+     "place": 21,
+     "player": "bro*****",
+     "wagered": 70428.26,
+     "prize": null,
+     "prize_extra": "750 DECOY"
+    },
+    {
+     "place": 22,
+     "player": "Ybe*****",
+     "wagered": 66093.36,
+     "prize": null,
+     "prize_extra": "750 DECOY"
+    },
+    {
+     "place": 23,
+     "player": "koa*****",
+     "wagered": 64440.81,
+     "prize": null,
+     "prize_extra": "750 DECOY"
+    },
+    {
+     "place": 24,
+     "player": "Axe*****",
+     "wagered": 60590.72,
+     "prize": null,
+     "prize_extra": "750 DECOY"
+    },
+    {
+     "place": 25,
+     "player": "ony*****",
+     "wagered": 56240.51,
+     "prize": null,
+     "prize_extra": "750 DECOY"
+    },
+    {
+     "place": 26,
+     "player": "Ogi*****",
+     "wagered": 52265.81,
+     "prize": null,
+     "prize_extra": "750 DECOY"
+    },
+    {
+     "place": 27,
+     "player": "Ivh*****",
+     "wagered": 50301.35,
+     "prize": null,
+     "prize_extra": "750 DECOY"
+    },
+    {
+     "place": 28,
+     "player": "Ika*****",
+     "wagered": 46969.29,
+     "prize": null,
+     "prize_extra": "750 DECOY"
+    },
+    {
+     "place": 29,
+     "player": "Ika*****",
+     "wagered": 44902.6,
+     "prize": null,
+     "prize_extra": "750 DECOY"
+    },
+    {
+     "place": 30,
+     "player": "Ezy*****",
+     "wagered": 40725.02,
+     "prize": null,
+     "prize_extra": "750 DECOY"
+    }
+   ],
+   "top_prizes": [
+    1000,
+    750,
+    500,
+    450,
+    350
+   ]
+  }
+ ],
+ "finished": [
+  {
+   "id": "jack-halloween-tournament",
+   "source_id": "jack",
+   "cadence": "weekly",
+   "casino": "Jack",
+   "casino_logo": null,
+   "name": "Jack's Haunted Reels",
+   "prize_pool": 15000,
+   "prize_extra": null,
+   "currency": "USD",
+   "score_unit": "points",
+   "points_per_dollar": 1,
+   "eligible_games": [
+    "Slots",
+    "Live casino"
+   ],
+   "source": "JACK public tournament leaderboard (jack.com/en/tournaments/2279). 1 point per $1 wagered. Campaign prize fund $15,000.",
+   "started_at": "2026-10-24T00:00:00.000Z",
+   "ends_at": "2026-10-31T00:00:00.000Z",
+   "duration_seconds": 604800,
+   "snapshot_at": "2026-10-30T20:02:38.740Z",
+   "expected_interval_s": 43200,
+   "leaderboard": [
+    {
+     "place": 1,
+     "player": "a****m",
+     "wagered": 1667232,
+     "prize": 3500,
+     "prize_extra": null
+    },
+    {
+     "place": 2,
+     "player": "u****s",
+     "wagered": 1424754,
+     "prize": 2000,
+     "prize_extra": null
+    },
+    {
+     "place": 3,
+     "player": "J****3",
+     "wagered": 1370022,
+     "prize": 1250,
+     "prize_extra": null
+    },
+    {
+     "place": 4,
+     "player": "P****o",
+     "wagered": 1194003,
+     "prize": 750,
+     "prize_extra": null
+    },
+    {
+     "place": 5,
+     "player": "b****d",
+     "wagered": 944674,
+     "prize": 750,
+     "prize_extra": null
+    },
+    {
+     "place": 6,
+     "player": "m****0",
+     "wagered": 726121,
+     "prize": 500,
+     "prize_extra": null
+    },
+    {
+     "place": 7,
+     "player": "f****9",
+     "wagered": 656421,
+     "prize": 500,
+     "prize_extra": null
+    },
+    {
+     "place": 8,
+     "player": "D****l",
+     "wagered": 622901,
+     "prize": 500,
+     "prize_extra": null
+    },
+    {
+     "place": 9,
+     "player": "G****m",
+     "wagered": 568454,
+     "prize": 500,
+     "prize_extra": null
+    },
+    {
+     "place": 10,
+     "player": "H****v",
+     "wagered": 557269,
+     "prize": 500,
+     "prize_extra": null
+    },
+    {
+     "place": 11,
+     "player": "G****m",
+     "wagered": 459250,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 12,
+     "player": "h****e",
+     "wagered": 451770,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 13,
+     "player": "h****3",
+     "wagered": 415871,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 14,
+     "player": "g****2",
+     "wagered": 372983,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 15,
+     "player": "p****o",
+     "wagered": 331126,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 16,
+     "player": "d****o",
+     "wagered": 317005,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 17,
+     "player": "M****e",
+     "wagered": 273399,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 18,
+     "player": "M****8",
+     "wagered": 260261,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 19,
+     "player": "D****r",
+     "wagered": 252473,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 20,
+     "player": "S****e",
+     "wagered": 211469,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 21,
+     "player": "T****l",
+     "wagered": 178929,
+     "prize": 175,
+     "prize_extra": null
+    },
+    {
+     "place": 22,
+     "player": "p****4",
+     "wagered": 161890,
+     "prize": 175,
+     "prize_extra": null
+    },
+    {
+     "place": 23,
+     "player": "G****m",
+     "wagered": 156737,
+     "prize": 175,
+     "prize_extra": null
+    },
+    {
+     "place": 24,
+     "player": "k****t",
+     "wagered": 144951,
+     "prize": 175,
+     "prize_extra": null
+    },
+    {
+     "place": 25,
+     "player": "w****7",
+     "wagered": 142647,
+     "prize": 175,
+     "prize_extra": null
+    },
+    {
+     "place": 26,
+     "player": "f****r",
+     "wagered": 138881,
+     "prize": 175,
+     "prize_extra": null
+    },
+    {
+     "place": 27,
+     "player": "v****k",
+     "wagered": 137946,
+     "prize": 175,
+     "prize_extra": null
+    },
+    {
+     "place": 28,
+     "player": "L****a",
+     "wagered": 133789,
+     "prize": 175,
+     "prize_extra": null
+    },
+    {
+     "place": 29,
+     "player": "d****r",
+     "wagered": 130381,
+     "prize": 175,
+     "prize_extra": null
+    },
+    {
+     "place": 30,
+     "player": "b****1",
+     "wagered": 103951,
+     "prize": 175,
+     "prize_extra": null
+    }
+   ],
+   "top_prizes": [
+    3500,
+    2000,
+    1250,
+    750,
+    750
+   ],
+   "finished_at": "2026-10-31T00:04:21.253Z"
+  },
+  {
+   "id": "tower-weekly-tournament",
+   "source_id": "tower",
+   "cadence": "weekly",
+   "casino": "Tower",
+   "casino_logo": null,
+   "name": "Slots Collection",
+   "prize_pool": 2000,
+   "prize_extra": null,
+   "currency": "USD",
+   "score_unit": "usd",
+   "points_per_dollar": null,
+   "eligible_games": [
+    "Selected slots only"
+   ],
+   "source": "Tower public weekly tournament leaderboard (tower.bet tournaments). Volume = USD wagered on the listed games.",
+   "started_at": "2026-10-23T15:00:00.000Z",
+   "ends_at": "2026-10-30T15:00:00.000Z",
+   "duration_seconds": 604800,
+   "snapshot_at": "2026-10-30T14:31:48.765Z",
+   "expected_interval_s": 14400,
+   "leaderboard": [
+    {
+     "place": 1,
+     "player": "dog*****",
+     "wagered": 7649.83,
+     "prize": 420,
+     "prize_extra": null
+    },
+    {
+     "place": 2,
+     "player": "Gos*****",
+     "wagered": 7153.66,
+     "prize": 320,
+     "prize_extra": null
+    },
+    {
+     "place": 3,
+     "player": "Ada*****",
+     "wagered": 5166.7,
+     "prize": 220,
+     "prize_extra": null
+    },
+    {
+     "place": 4,
+     "player": "Chr*****",
+     "wagered": 5049.29,
+     "prize": 160,
+     "prize_extra": null
+    },
+    {
+     "place": 5,
+     "player": "Ksm*****",
+     "wagered": 3157.15,
+     "prize": 140,
+     "prize_extra": null
+    },
+    {
+     "place": 6,
+     "player": "Bri*****",
+     "wagered": 2740.17,
+     "prize": 120,
+     "prize_extra": null
+    },
+    {
+     "place": 7,
+     "player": "Eiz*****",
+     "wagered": 2604.03,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 8,
+     "player": "Aly*****",
+     "wagered": 1554.3,
+     "prize": 60,
+     "prize_extra": null
+    },
+    {
+     "place": 9,
+     "player": "ImA*****",
+     "wagered": 1467.2,
+     "prize": 60,
+     "prize_extra": null
+    },
+    {
+     "place": 10,
+     "player": "Bnd*****",
+     "wagered": 1363.25,
+     "prize": 60,
+     "prize_extra": null
+    },
+    {
+     "place": 11,
+     "player": "Uqi*****",
+     "wagered": 1162.32,
+     "prize": 60,
+     "prize_extra": null
+    },
+    {
+     "place": 12,
+     "player": "bro*****",
+     "wagered": 1140.76,
+     "prize": 60,
+     "prize_extra": null
+    },
+    {
+     "place": 13,
+     "player": "Ric*****",
+     "wagered": 741.88,
+     "prize": 40,
+     "prize_extra": null
+    },
+    {
+     "place": 14,
+     "player": "Axi*****",
+     "wagered": 655.81,
+     "prize": 40,
+     "prize_extra": null
+    },
+    {
+     "place": 15,
+     "player": "Tim*****",
+     "wagered": 519.78,
+     "prize": 40,
+     "prize_extra": null
+    },
+    {
+     "place": 16,
+     "player": "Dar*****",
+     "wagered": 500.78,
+     "prize": 20,
+     "prize_extra": null
+    },
+    {
+     "place": 17,
+     "player": "Ika*****",
+     "wagered": 383.12,
+     "prize": 20,
+     "prize_extra": null
+    },
+    {
+     "place": 18,
+     "player": "Ful*****",
+     "wagered": 370.54,
+     "prize": 20,
+     "prize_extra": null
+    },
+    {
+     "place": 19,
+     "player": "Hidden",
+     "wagered": 348.21,
+     "prize": 20,
+     "prize_extra": null
+    },
+    {
+     "place": 20,
+     "player": "Bos*****",
+     "wagered": 253.38,
+     "prize": 20,
+     "prize_extra": null
+    },
+    {
+     "place": 21,
+     "player": "The*****",
+     "wagered": 236.01,
+     "prize": null,
+     "prize_extra": null
+    },
+    {
+     "place": 22,
+     "player": "Elp*****",
+     "wagered": 210.14,
+     "prize": null,
+     "prize_extra": null
+    },
+    {
+     "place": 23,
+     "player": "sut*****",
+     "wagered": 199.89,
+     "prize": null,
+     "prize_extra": null
+    },
+    {
+     "place": 24,
+     "player": "Yha*****",
+     "wagered": 198.23,
+     "prize": null,
+     "prize_extra": null
+    },
+    {
+     "place": 25,
+     "player": "phr*****",
+     "wagered": 191.62,
+     "prize": null,
+     "prize_extra": null
+    },
+    {
+     "place": 26,
+     "player": "Bet*****",
+     "wagered": 143.06,
+     "prize": null,
+     "prize_extra": null
+    },
+    {
+     "place": 27,
+     "player": "Per*****",
+     "wagered": 138.29,
+     "prize": null,
+     "prize_extra": null
+    },
+    {
+     "place": 28,
+     "player": "Chr*****",
+     "wagered": 129.21,
+     "prize": null,
+     "prize_extra": null
+    },
+    {
+     "place": 29,
+     "player": "J4n*****",
+     "wagered": 124.5,
+     "prize": null,
+     "prize_extra": null
+    },
+    {
+     "place": 30,
+     "player": "Pre*****",
+     "wagered": 111.84,
+     "prize": null,
+     "prize_extra": null
+    }
+   ],
+   "top_prizes": [
+    420,
+    320,
+    220,
+    160,
+    140
+   ],
+   "finished_at": "2026-10-30T15:01:50.305Z"
+  },
+  {
+   "id": "jack-western-wager",
+   "source_id": "jack",
+   "cadence": "weekly",
+   "casino": "Jack",
+   "casino_logo": null,
+   "name": "Western Wager",
+   "prize_pool": 9200,
+   "prize_extra": null,
+   "currency": "USD",
+   "score_unit": "points",
+   "points_per_dollar": 1,
+   "eligible_games": [
+    "Slots",
+    "Live casino"
+   ],
+   "source": "JACK public tournament leaderboard (jack.com/en/tournaments/2266). 1 point per $1 wagered. Resets Wednesdays 12:00 UTC. Campaign prize fund $40,000.",
+   "started_at": "2026-10-21T12:00:00.000Z",
+   "ends_at": "2026-10-28T12:00:00.000Z",
+   "duration_seconds": 604800,
+   "snapshot_at": "2026-10-28T07:48:13.466Z",
+   "expected_interval_s": 43200,
+   "leaderboard": [
+    {
+     "place": 1,
+     "player": "A****l",
+     "wagered": 7728565,
+     "prize": 2000,
+     "prize_extra": null
+    },
+    {
+     "place": 2,
+     "player": "u****s",
+     "wagered": 2224315,
+     "prize": 1500,
+     "prize_extra": null
+    },
+    {
+     "place": 3,
+     "player": "a****m",
+     "wagered": 2090330,
+     "prize": 1000,
+     "prize_extra": null
+    },
+    {
+     "place": 4,
+     "player": "P****o",
+     "wagered": 1194003,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 5,
+     "player": "J****3",
+     "wagered": 1027525,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 6,
+     "player": "G****m",
+     "wagered": 979744,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 7,
+     "player": "f****9",
+     "wagered": 639632,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 8,
+     "player": "H****v",
+     "wagered": 609416,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 9,
+     "player": "G****m",
+     "wagered": 592138,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 10,
+     "player": "S****e",
+     "wagered": 575105,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 11,
+     "player": "b****d",
+     "wagered": 504817,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 12,
+     "player": "h****e",
+     "wagered": 497613,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 13,
+     "player": "m****0",
+     "wagered": 494606,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 14,
+     "player": "D****r",
+     "wagered": 378693,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 15,
+     "player": "a****4",
+     "wagered": 372325,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 16,
+     "player": "p****o",
+     "wagered": 365900,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 17,
+     "player": "D****l",
+     "wagered": 311007,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 18,
+     "player": "l****4",
+     "wagered": 306298,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 19,
+     "player": "G****m",
+     "wagered": 299425,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 20,
+     "player": "a****x",
+     "wagered": 278679,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 21,
+     "player": "h****3",
+     "wagered": 268239,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 22,
+     "player": "m****Y",
+     "wagered": 217712,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 23,
+     "player": "M****8",
+     "wagered": 216957,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 24,
+     "player": "b****1",
+     "wagered": 199534,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 25,
+     "player": "g****2",
+     "wagered": 195165,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 26,
+     "player": "k****4",
+     "wagered": 194695,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 27,
+     "player": "m****1",
+     "wagered": 187287,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 28,
+     "player": "M****e",
+     "wagered": 186939,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 29,
+     "player": "k****t",
+     "wagered": 181517,
+     "prize": 100,
+     "prize_extra": null
+    },
+    {
+     "place": 30,
+     "player": "s****k",
+     "wagered": 180861,
+     "prize": 100,
+     "prize_extra": null
+    }
+   ],
+   "top_prizes": [
+    2000,
+    1500,
+    1000,
+    300,
+    300
+   ],
+   "finished_at": "2026-10-28T12:09:56.528Z"
+  },
+  {
+   "id": "frogbet-weekly-wager-race",
+   "source_id": "frogbet",
+   "cadence": "weekly",
+   "casino": "FrogBet",
+   "casino_logo": null,
+   "name": "Weekly Wager Race",
+   "prize_pool": 10000,
+   "prize_extra": null,
+   "currency": "USD",
+   "score_unit": "usd",
+   "points_per_dollar": null,
+   "eligible_games": [
+    "All games"
+   ],
+   "source": "FrogBet public wager-race leaderboard (frogbet.com/wager-race). Resets Wednesdays 00:00 UTC.",
+   "started_at": "2026-10-21T00:00:00.000Z",
+   "ends_at": "2026-10-28T00:00:00.000Z",
+   "duration_seconds": 604800,
+   "snapshot_at": "2026-10-27T22:56:32.849Z",
+   "expected_interval_s": 4320,
+   "leaderboard": [
+    {
+     "place": 1,
+     "player": "InnerLu*****",
+     "wagered": 664757.22,
+     "prize": 2500,
+     "prize_extra": null
+    },
+    {
+     "place": 2,
+     "player": "PaladinC*****",
+     "wagered": 385982.78,
+     "prize": 1500,
+     "prize_extra": null
+    },
+    {
+     "place": 3,
+     "player": "CrimsonF*****",
+     "wagered": 303734.61,
+     "prize": 700,
+     "prize_extra": null
+    },
+    {
+     "place": 4,
+     "player": "BoldCha*****",
+     "wagered": 216991.04,
+     "prize": 500,
+     "prize_extra": null
+    },
+    {
+     "place": 5,
+     "player": "NinjaTo*****",
+     "wagered": 190514.34,
+     "prize": 400,
+     "prize_extra": null
+    },
+    {
+     "place": 6,
+     "player": "MarbleO*****",
+     "wagered": 130548.88,
+     "prize": 350,
+     "prize_extra": null
+    },
+    {
+     "place": 7,
+     "player": "FluentSp*****",
+     "wagered": 117641.56,
+     "prize": 300,
+     "prize_extra": null
+    },
+    {
+     "place": 8,
+     "player": "JauntyC*****",
+     "wagered": 101524.73,
+     "prize": 250,
+     "prize_extra": null
+    },
+    {
+     "place": 9,
+     "player": "CleverP*****",
+     "wagered": 101475.26,
+     "prize": 200,
+     "prize_extra": null
+    },
+    {
+     "place": 10,
+     "player": "LightTo*****",
+     "wagered": 98956.11,
+     "prize": 150,
+     "prize_extra": null
+    },
+    {
+     "place": 11,
+     "player": "NobleOp*****",
+     "wagered": 57031.68,
+     "prize": 90,
+     "prize_extra": null
+    },
+    {
+     "place": 12,
+     "player": "GreenJa*****",
+     "wagered": 56730.93,
+     "prize": 80,
+     "prize_extra": null
+    },
+    {
+     "place": 13,
+     "player": "Dewdrop*****",
+     "wagered": 56292.32,
+     "prize": 70,
+     "prize_extra": null
+    },
+    {
+     "place": 14,
+     "player": "Midnight*****",
+     "wagered": 56243.02,
+     "prize": 60,
+     "prize_extra": null
+    },
+    {
+     "place": 15,
+     "player": "ArcaneR*****",
+     "wagered": 56090.87,
+     "prize": 50,
+     "prize_extra": null
+    },
+    {
+     "place": 16,
+     "player": "CometBo*****",
+     "wagered": 56079.44,
+     "prize": 40,
+     "prize_extra": null
+    },
+    {
+     "place": 17,
+     "player": "MasonCh*****",
+     "wagered": 55720.28,
+     "prize": 35,
+     "prize_extra": null
+    },
+    {
+     "place": 18,
+     "player": "EnigmaJac*****",
+     "wagered": 55478.01,
+     "prize": 30,
+     "prize_extra": null
+    },
+    {
+     "place": 19,
+     "player": "GigaJac*****",
+     "wagered": 54646.55,
+     "prize": 25,
+     "prize_extra": null
+    },
+    {
+     "place": 20,
+     "player": "Infinite*****",
+     "wagered": 54056.77,
+     "prize": 20,
+     "prize_extra": null
+    }
+   ],
+   "top_prizes": [
+    2500,
+    1500,
+    700,
+    500,
+    400
+   ],
+   "finished_at": "2026-10-28T00:07:17.544Z"
+  }
+ ]
+}
