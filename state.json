@@ -1,0 +1,49 @@
+{
+ "budget": {
+  "firecrawl": {
+   "month": "2026-11",
+   "used_month": 409,
+   "day": "2026-11-14",
+   "used_day": 22,
+   "remaining": 227,
+   "used_since_check": 24,
+   "checked_at": "2026-11-13T22:26:48.850Z"
+  },
+  "microlink": {
+   "month": "2026-11",
+   "used_month": 264,
+   "day": "2026-11-14",
+   "used_day": 14
+  },
+  "scrapedo": {
+   "month": "2026-11",
+   "used_month": 412,
+   "day": "2026-11-14",
+   "used_day": 22
+  },
+  "firecrawl2": {
+   "month": "2026-11",
+   "used_month": 0,
+   "day": "2026-11-14",
+   "used_day": 0
+  }
+ },
+ "tower": {
+  "event": {
+   "wageringContestHash": "3e4652964d",
+   "finishDate": 1796082600
+  },
+  "event_at": "2026-11-14T15:09:39.171Z"
+ },
+ "last": {
+  "frogbet": "2026-11-14T19:28:51.474Z",
+  "jack": "2026-11-14T09:27:38.034Z",
+  "duckdice": "2026-11-14T19:50:29.002Z",
+  "tower-contest": "2026-11-14T19:39:36.988Z",
+  "tower-tournament": "2026-11-14T19:09:36.985Z",
+  "tower": "2026-11-14T19:39:36.988Z"
+ },
+ "jack": {
+  "paid_at": "2026-11-14T09:27:38.034Z"
+ }
+}
